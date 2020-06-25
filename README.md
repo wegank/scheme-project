@@ -8,7 +8,7 @@ Les fonctions de bases sont fournies : parser et types de bases.
 - [Introduction](#introduction) 
 - [Installation](#installation)
 - [Implémentations](#implementations)
-  - [Pour débuter](#pour-debuter)
+  - [Pour débuter](#pour-débuter)
   - [Pour aller plus loin](#pour-aller-plus-loin)
   - [Bonus](#bonus)
 - [Fichiers](#fichiers)
@@ -75,17 +75,36 @@ dune build main.exe && ../_build/default/src/main.exe
 
 ### Pour aller plus loin
 
-1. On souhaite rajouter le support de `if.` La syntaxe de `if` est la suivante : `(if condition consequence alternant)` avec `condition`, `consequence` et `alternant` des sexpr. Attention, il ne faut évaluer qu’un seul des opérandes : `consequence` si `condition` est vraie, sinon `alternant`.
+1. On souhaite rajouter le support de `if`. La syntaxe de `if` est la suivante : `(if condition consequence alternant)` avec `condition`, `consequence` et `alternant` des sexpr. Attention, il ne faut évaluer qu’un seul des opérandes : `consequence` si `condition` est vraie, sinon `alternant`.
    Indice: Il faut rajouter le support de `Special If` dans `eval`.
-2. On souhaite rajouter le support de `lambda`. `lambda` crée une fonction anonyme de la même manière que `function` en OCaml. La syntaxe de `lambda` est la suivante : `(lambda (x) (print x))`. Il est nécessaire de rajouter le support de l’environnement. Pour cela, il est nécessaire de modifier `eval` pour qu’elle accepte un environnement (`env -> sexpr -> sexpr`). Proposez une solution.
-   Indice : gérer `Special Lambda` directement dans `eval` et utiliser et gérer les `atom` `Fun` et `Symbol`. Une fonction accepte un environnement et du code à exécuter. Il faut créer la liaison entre les arguments et les valeurs lors de l’appel de la fonction et aller chercher les arguments dans l’environnement. Par exemple, `((lambda (x) (print x)) 2)`, dans le corps de cette fonction, x vaut 2. En dehors, x n’est pas défini.
-3. Rajouter le support de `let`. La syntaxe de `let` est la suivante : `(let (x 10) body)` avec `body` une sexpr. À l’évaluation, il est possible de transformer `let` en `lambda`. Proposez une solution.
-   Indice : gérer `let` directement dans `eval`.
+    1. Rajouter le support de `Special` dans `eval_call`. Pour cela, écrire la fonction `is_special` puis `eval_special` avec le cas du `if`. 
+    2. Évaluer la condition. Si elle est vraie, évaluer la conséquence, sinon évaluer l’alternant.
+1. On souhaite rajouter le support de `lambda`. `lambda` crée une fonction anonyme de la même manière que `function` en OCaml. La syntaxe de `lambda` est la suivante : `(lambda (x) (print x))`. Il est nécessaire de rajouter le support de l’environnement.
+    1. Rajouter le support de `Lambda` dans `eval_special`. Il s’évalue vers un `Atom`. Pensez à gérer les arguments de la fonction. Vous pouvez vous aider de la fonction `string_of_symbol`.
+    2. Rajouter le support de `Fun` dans `apply`. Il faut appliquer la fonction avec `apply_function`.
+    3. Écrire le corps de `apply_function`. Récupérer la liste de arguments de la fonction, mettez-là dans un nouvel environnement qui hérite du précédent (portée lexicale), et évaluer la fonction dans le nouvel environnement.
+    4. Rajouter la gestion des `Symbol` dans `eval`.
+1. Rajouter le support de `let`. La syntaxe de `let` est la suivante : `(let (x 10) body)` avec `body` une sexpr. À l’évaluation, il est possible de transformer `let` en `lambda`. Proposez une solution.  
+   Indice : gérer `let` dans `eval_special` uniquement.
 
 ### Bonus :
 
-- Proposez une implémentation pour `cons`, `car` et `cdr`, respectivement de signatures `'a -> 'b -> ('a, 'b)`, `('a, 'b) -> 'a` et `('a, 'b) -> 'b`. On peut alors écrire des listes du type `(cons 1 (cons 2 (cons 3)))`.
-- Proposez une implémentation pour `quote` et proposez une implémentation pour `eval`.
+- Proposez une implémentation pour `cons`, `car` et `cdr`.
+```ocaml
+let cons : sexpr -> sexpr -> sexpr
+ (* Tel que (cons x y) construit la liste avec x en tête de la liste
+      y et lance Invalid_argument "cons" si y n'est pas une liste *)
+ 
+let car : sexpr -> sexpr 
+ (* Telle que (car x) accède à la tête de la liste x 
+      et lance Invalid_argument "cons" si x n'est pas une liste *)
+
+let cdr : sexpr -> sexpr 
+ (* Telle que (cdr x) accède aux reste de la liste x 
+      et lance Invalid_argument "cons" si x n'est pas une liste. *)
+``` 
+- Pour cela, if faut rajouter un `Atom` dans les types de type `List of sexpr list` et dans le parser un `Special` `Cdr`, `Car` et `Cons`.  
+On pourra alors écrire des listes du type `(cons 1 (cons 2 (cons 3)))`.
 
 ## Fichiers
 ### Types
