@@ -6,7 +6,11 @@ Les fonctions de bases sont fournies : parser et types de bases.
 # Table des matières
 
 - [Introduction](#introduction) 
-- [But](#but)
+- [Installation](#installation)
+- [Implémentations](#implementations)
+  - [Pour débuter](#pour-debuter)
+  - [Pour aller plus loin](#pour-aller-plus-loin)
+  - [Bonus](#bonus)
 - [Fichiers](#fichiers)
   - [Types](#types)
   - [Parser](#parser)
@@ -31,6 +35,32 @@ Si besoin, vous trouverez une transcriptions des types plus bas.
    Indice : gérer `List` et `Atom` dans `eval` et `Print` dans `apply_primitive`. `print` à comme valeur de retour `Unit`. -->
 
 <!-- Indice professeur : `(let (x 10) body)` est équivalent à `((lambda (x) body) 10)`-->
+
+## Installation
+
+- Cloner le dépôt
+```bash
+# SSH Users
+git clone git@github.com/ghivert/scheme-project-clear.git
+# HTTPS Users
+git clone https://github.com/ghivert/scheme-project-clear.git
+```
+- [Installer OPAM](https://opam.ocaml.org/doc/Install.html)
+```bash
+opam init
+```
+- Installer dune
+```bash
+opam install dune
+```
+- Aller dans le dossier `/src`
+```bash
+cd src
+```
+- Lancer la compilation
+```bash
+dune build main.exe && ../_build/default/src/main.exe
+```
 
 ## Implémentations
 ### Pour débuter
