@@ -5,7 +5,7 @@ Les fonctions de bases sont fournies : parser et types de bases.
 
 # Table des matières
 
-- [Introduction](#introduction) 
+- [Introduction](#introduction)
 - [Installation](#installation)
 - [Implémentations](#implementations)
   - [Pour débuter](#pour-débuter)
@@ -39,74 +39,87 @@ Si besoin, vous trouverez une transcriptions des types plus bas.
 ## Installation
 
 - Cloner le dépôt
+
 ```bash
 # SSH Users
 git clone git@github.com/ghivert/scheme-project-clear.git
 # HTTPS Users
 git clone https://github.com/ghivert/scheme-project-clear.git
 ```
+
 - [Installer OPAM](https://opam.ocaml.org/doc/Install.html)
+
 ```bash
 opam init
 ```
+
 - Installer dune
+
 ```bash
 opam install dune
 ```
+
 - Aller dans le dossier `/src`
+
 ```bash
 cd src
 ```
+
 - Lancer la compilation
+
 ```bash
 dune build main.exe && ../_build/default/src/main.exe
 ```
 
 ## Implémentations
+
 ### Pour débuter
 
 1. Analyser la structure d’un programme dans l’interprète. Pour cela, n’hésitez pas à afficher des programmes parsés directement dans le top-level. Utilisez `Parser.parse "(+ 1 3)"` par exemple.
 2. Le fichier `main.ml` vous est fourni. Il contient le squelette de code nécessaire pour implémenter le projet. Nous allons commencer par ajouter le support des opérateurs arithmétiques : `+`, `-`, `*` et `/`.
-    1. Écrire le corps de la fonction `eval`. Celle-ci devra prendre une sexpr en entrée et l’évaluer. Si c’est un atom, renvoyer l’atom, si c’est un Call, appeler `eval_call` sur le corps de l’expression. On ignorera l’env pour le moment.
-    2. Écrire le corps de `eval_call`. Si l’expression est un `Special`, alors renvoyer l’évaluation de `eval_special`, sinon appliquer `apply` sur tout le corps du `Call`. On ignorera l’env pour le moment.
-    3. Écrire le corps de `apply`. Vérifier que l’expression est une primitive, et l’appliquer sur ses arguments à l’aide de `apply_primitive`. On ignorera l’env pour le moment.
-    4. Écrire le corps de `apply_primitive`. Celui-ci prends une primitive et des arguments, et cherche à matcher la primitive avec un opérateur arithmétique. S’il le trouve, alors il applique séquentiellement l’opération sur tous les arguments et retourne la valeur.
+   1. Écrire le corps de la fonction `eval`. Celle-ci devra prendre une sexpr en entrée et l’évaluer. Si c’est un atom, renvoyer l’atom, si c’est un Call, appeler `eval_call` sur le corps de l’expression. On ignorera l’env pour le moment.
+   2. Écrire le corps de `eval_call`. Si l’expression est un `Special`, alors renvoyer l’évaluation de `eval_special`, sinon appliquer `apply` sur tout le corps du `Call`. On ignorera l’env pour le moment.
+   3. Écrire le corps de `apply`. Vérifier que l’expression est une primitive, et l’appliquer sur ses arguments à l’aide de `apply_primitive`. On ignorera l’env pour le moment.
+   4. Écrire le corps de `apply_primitive`. Celui-ci prends une primitive et des arguments, et cherche à matcher la primitive avec un opérateur arithmétique. S’il le trouve, alors il applique séquentiellement l’opération sur tous les arguments et retourne la valeur.
 3. On souhaite rajouter le support de `=` et `<`. Proposez une implémentation en appliquant la même démarche qu’au-dessus. Ces deux opérateurs suivent le même schéma que pour les opérateurs arithmétiques.
 
 ### Pour aller plus loin
 
 1. On souhaite rajouter le support de `if`. La syntaxe de `if` est la suivante : `(if condition consequence alternant)` avec `condition`, `consequence` et `alternant` des sexpr. Attention, il ne faut évaluer qu’un seul des opérandes : `consequence` si `condition` est vraie, sinon `alternant`.
    Indice: Il faut rajouter le support de `Special If` dans `eval`.
-    1. Rajouter le support de `Special` dans `eval_call`. Pour cela, écrire la fonction `is_special` puis `eval_special` avec le cas du `if`. 
-    2. Évaluer la condition. Si elle est vraie, évaluer la conséquence, sinon évaluer l’alternant.
+   1. Rajouter le support de `Special` dans `eval_call`. Pour cela, écrire la fonction `is_special` puis `eval_special` avec le cas du `if`.
+   2. Évaluer la condition. Si elle est vraie, évaluer la conséquence, sinon évaluer l’alternant.
 1. On souhaite rajouter le support de `lambda`. `lambda` crée une fonction anonyme de la même manière que `function` en OCaml. La syntaxe de `lambda` est la suivante : `(lambda (x) (print x))`. Il est nécessaire de rajouter le support de l’environnement.
-    1. Rajouter le support de `Lambda` dans `eval_special`. Il s’évalue vers un `Atom`. Pensez à gérer les arguments de la fonction. Vous pouvez vous aider de la fonction `string_of_symbol`.
-    2. Rajouter le support de `Fun` dans `apply`. Il faut appliquer la fonction avec `apply_function`.
-    3. Écrire le corps de `apply_function`. Récupérer la liste de arguments de la fonction, mettez-là dans un nouvel environnement qui hérite du précédent (portée lexicale), et évaluer la fonction dans le nouvel environnement.
-    4. Rajouter la gestion des `Symbol` dans `eval`.
+   1. Rajouter le support de `Lambda` dans `eval_special`. Il s’évalue vers un `Atom`. Pensez à gérer les arguments de la fonction. Vous pouvez vous aider de la fonction `string_of_symbol`.
+   2. Rajouter le support de `Fun` dans `apply`. Il faut appliquer la fonction avec `apply_function`.
+   3. Écrire le corps de `apply_function`. Récupérer la liste de arguments de la fonction, mettez-là dans un nouvel environnement qui hérite du précédent (portée lexicale), et évaluer la fonction dans le nouvel environnement.
+   4. Rajouter la gestion des `Symbol` dans `eval`.
 1. Rajouter le support de `let`. La syntaxe de `let` est la suivante : `(let (x 10) body)` avec `body` une sexpr. À l’évaluation, il est possible de transformer `let` en `lambda`. Proposez une solution.  
    Indice : gérer `let` dans `eval_special` uniquement.
 
 ### Bonus :
 
 - Proposez une implémentation pour `cons`, `car` et `cdr`.
+
 ```ocaml
 let cons : sexpr -> sexpr -> sexpr
  (* Tel que (cons x y) construit la liste avec x en tête de la liste
       y et lance Invalid_argument "cons" si y n'est pas une liste *)
- 
-let car : sexpr -> sexpr 
- (* Telle que (car x) accède à la tête de la liste x 
+
+let car : sexpr -> sexpr
+ (* Telle que (car x) accède à la tête de la liste x
       et lance Invalid_argument "cons" si x n'est pas une liste *)
 
-let cdr : sexpr -> sexpr 
- (* Telle que (cdr x) accède aux reste de la liste x 
+let cdr : sexpr -> sexpr
+ (* Telle que (cdr x) accède aux reste de la liste x
       et lance Invalid_argument "cons" si x n'est pas une liste. *)
-``` 
-- Pour cela, if faut rajouter un `Atom` dans les types de type `List of sexpr list` et dans le parser un `Special` `Cdr`, `Car` et `Cons`.  
-On pourra alors écrire des listes du type `(cons 1 (cons 2 (cons 3)))`.
+```
+
+- Pour cela, if faut rajouter un `Atom` dans les types de type `List of sexpr list` et dans le parser un `Primitive` `Cdr`, `Car` et `Cons`.  
+  On pourra alors écrire des listes du type `(cons 1 (cons 2 (cons 3)))`.
 
 ## Fichiers
+
 ### Types
 
 ```ocaml
