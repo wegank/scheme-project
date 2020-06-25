@@ -6,25 +6,25 @@ let string_of_symbol : sexpr -> string = function
 
 let initial_env : env = []
 
-let rec eval (env : env) (e : sexpr) : sexpr =
+let eval (_env : env) (_e : sexpr) : sexpr =
   failwith "Not implemented"
 
-and is_special (es : sexpr list) : bool =
+and is_special (_es : sexpr list) : bool =
   failwith "Not implemented"
 
-and eval_call (env : env) (es : sexpr lit) : sexpr =
+and eval_call (_env : env) (_es : sexpr list) : sexpr =
   failwith "Not implemented"
 
-and eval_special (env : env) (es : sexpr list) : sexpr =
+and eval_special (_env : env) (_es : sexpr list) : sexpr =
   failwith "Not implemented"
 
-and apply (env : env) (es : sexpr) : sexpr =
+and apply (_env : env) (_es : sexpr) : sexpr =
   failwith "Not implemented"
 
-and apply_function (env : env) (xs, e) (args : sexpr) : sexpr =
+and apply_function (_env : env) (_xs, _e) (_args : sexpr) : sexpr =
   failwith "Not implemented"
 
-and apply_primitive (p : primitive) (args : sexpr list) : sexpr =
+and apply_primitive (_p : primitive) (_args : sexpr list) : sexpr =
   failwith "Not implemented"
 
 let example_1 : string = "(+ 1 2)"
@@ -81,7 +81,7 @@ let sexpr_example_3 : sexpr =
 
 let main () =
   let prog = Parser.parse example_1 in
-  let _ List.map (eval initial_env) prog in
+  let _ = List.map (eval initial_env) prog in
   ()
 
 let () = main ()
