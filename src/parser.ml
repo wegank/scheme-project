@@ -60,12 +60,9 @@ and string_of_atom (atom : atom) : string =
   | Str_ x -> x
   | Primitive prim -> string_of_primitive prim
   | Fun (_env, (args, sexpr)) ->
-    String.concat " "
-      [ "lambda ("
-      ; String.concat " " args
-      ; ")"
-      ; string_of_sexpr sexpr
-      ]
+    String.concat " " 
+    [ "lambda ("; String.concat " " args; ")"; string_of_sexpr sexpr]
+  | List (es) -> "[" ^ String.concat "; " (List.map string_of_sexpr es) ^ "]"
 
 and string_of_primitive prim =
   match prim with
@@ -75,6 +72,9 @@ and string_of_primitive prim =
   | Div -> "/"
   | Eq -> "="
   | Lt -> "<"
+  | Car -> "car"
+  | Cdr -> "cdr"
+  | Cons -> "cons"
 
 and string_of_special special =
   match special with
