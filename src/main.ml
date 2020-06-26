@@ -92,12 +92,11 @@ and apply_function (env : env) (_xs, e) (args : sexpr list) : sexpr =
     | _ -> e in
   eval env' (replace e)
 
-
 and apply_primitive (p : primitive) (args : sexpr list) : sexpr =
   match args with
   | [_; _] ->
-    begin match List.map (eval initial_env) args with
-    | [Atom (Int (i)); Atom (Int (i'))] ->
+    begin match p, List.map (eval initial_env) args with
+    | (Add | Sub | Mul | Div | Eq | Lt), [Atom (Int (i)); Atom (Int (i'))] ->
       begin match p with
       | Add -> Atom (Int (i + i'))
       | Sub -> Atom (Int (i - i'))
@@ -105,36 +104,36 @@ and apply_primitive (p : primitive) (args : sexpr list) : sexpr =
       | Div -> Atom (Int (i * i'))
       | Eq -> Atom (Bool (i = i'))
       | Lt -> Atom (Bool (i < i'))
-      | _ -> failwith "Syntax error :: primitive :: wrong primitive"
+      | _ -> failwith "Syntax error :: Primitive :: unreachable error"
       end
-    | [e; Atom (List es)] ->
-      begin match p with
-      | Cons -> Atom (List (e :: es))
-      | _ -> failwith "Syntax error :: primitive :: wrong primitive"
+    | (Add | Sub | Mul | Div | Eq | Lt), _ -> Call (Atom (Primitive p) :: args)
+    | Cons, [e; e'] ->
+      begin match e, e' with
+      | Call [], Call [] -> Atom (List [])
+      | e, Call [] -> Atom (List [e])
+      | e, Atom (List es) -> Atom (List (e :: es))
+      | _, _ -> Atom (List [e; e'])
       end
-    | [e; Call []] ->
-      begin match p with
-      | Cons -> Atom (List [e])
-      | _ -> failwith "Syntax error :: primitive :: wrong primitive"
-      end
-    | _ -> Call (Atom (Primitive p) :: args)
+    | _, _ -> failwith "Syntax error :: Primitive :: wrong primitive"
     end
   | [_] ->
-    begin match List.map (eval initial_env) args with
-    | [Atom (List (e :: es))] ->
-      begin match p with
-      | Car -> e
-      | Cdr -> Atom (List es)
-      | _ -> failwith "Syntax error :: primitive :: wrong primitive"
+    begin match p, List.map (eval initial_env) args with
+    | Car, [e] ->
+      begin match e with
+      | Atom (List (e :: _)) -> e
+      | Atom (List []) -> Atom (List [])
+      | _ -> failwith "Syntax error :: Car :: parameter must be a list"
       end
-    | [e] ->
-      begin match p with
-      | Cons -> Atom (List [e])
-      | _ -> failwith "Syntax error :: primitive :: wrong primitive"
+    | Cdr, [e] ->
+      begin match e with
+      | Atom (List (_ :: es)) -> Atom (List es)
+      | Atom (List []) -> Atom (List [])
+      | _ -> failwith "Syntax error :: Cdr :: parameter must be a list"
       end
-    | _ -> failwith "Syntax error :: primitive :: wrong primitive"
+    | Cons, [e] -> Atom (List [e])
+    | _, _ -> failwith "Syntax error :: Primitive :: wrong primitive"
     end
-  | _ -> failwith "Syntax error :: Primitive :: too few arguments, expected 2"
+  | _ -> failwith "Syntax error :: Primitive :: wrong number of arguments, expected 1 or 2"
 
 let example_1 : string = "(+ 1 2)"
 
