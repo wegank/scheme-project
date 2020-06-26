@@ -46,6 +46,42 @@ let sexpr_of_string x : sexpr =
   | "cdr"    -> Atom (Primitive Cdr)
   | others   -> try_to_match_atom others
 
+let rec string_of_sexpr (x : sexpr) : string =
+  match x with
+  | Atom atom -> string_of_atom atom
+  | Special special -> string_of_special special
+  | Symbol symbol -> symbol
+  | Call exprs -> "(" ^ (String.concat " " @@ List.map string_of_sexpr exprs) ^ ")"
+
+and string_of_atom (atom : atom) : string =
+  match atom with
+  | Int x -> string_of_int x
+  | Bool x -> string_of_bool x
+  | Str_ x -> x
+  | Primitive prim -> string_of_primitive prim
+  | Fun (_env, (args, sexpr)) ->
+    String.concat " "
+      [ "lambda ("
+      ; String.concat " " args
+      ; ")"
+      ; string_of_sexpr sexpr
+      ]
+
+and string_of_primitive prim =
+  match prim with
+  | Add -> "+"
+  | Sub -> "-"
+  | Mul -> "*"
+  | Div -> "/"
+  | Eq -> "="
+  | Lt -> "<"
+
+and string_of_special special =
+  match special with
+  | If -> "if"
+  | Lambda -> "lambda"
+  | Let -> "let"
+
 let rec group_expressions (acc : sexpr list) (chars : string list) =
   match chars with
   | [] -> (acc, [])
