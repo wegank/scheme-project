@@ -1,3 +1,3 @@
 (executable
- (name main)
- (libraries str cmdliner))
+  (name shell)
+  (libraries str cmdliner))

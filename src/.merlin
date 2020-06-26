@@ -1,7 +1,7 @@
 EXCLUDE_QUERY_DIR
 B /usr/lib/ocaml
 B /usr/lib/ocaml/cmdliner
-B ../_build/default/src/.main.eobjs/byte
+B ../_build/default/src/.shell.eobjs/byte
 S /usr/lib/ocaml
 S /usr/lib/ocaml/cmdliner
 S .
