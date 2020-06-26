@@ -18,10 +18,10 @@ and eval_call (_env : env) (_es : sexpr list) : sexpr =
 and eval_special (_env : env) (_es : sexpr list) : sexpr =
   failwith "Not implemented"
 
-and apply (_env : env) (_es : sexpr) : sexpr =
+and apply (_env : env) (_es : sexpr list) : sexpr =
   failwith "Not implemented"
 
-and apply_function (_env : env) (_xs, _e) (_args : sexpr) : sexpr =
+and apply_function (_env : env) (_xs, _e) (_args : sexpr list) : sexpr =
   failwith "Not implemented"
 
 and apply_primitive (_p : primitive) (_args : sexpr list) : sexpr =
