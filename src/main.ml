@@ -76,7 +76,7 @@ and extend_env (env : env) (xs : string list) (args : sexpr list) : env =
 and apply_primitive (p : primitive) (args : sexpr list) : sexpr =
   match args with
   | [_; _] ->
-    begin match p, List.map (eval initial_env) args with
+    begin match p, args with
     | (Add | Sub | Mul | Div | Eq | Lt), [Atom (Int (i)); Atom (Int (i'))] ->
       begin match p with
       | Add -> Atom (Int (i + i'))
@@ -98,7 +98,7 @@ and apply_primitive (p : primitive) (args : sexpr list) : sexpr =
     | _, _ -> failwith "Syntax error :: Primitive :: wrong primitive"
     end
   | [_] ->
-    begin match p, List.map (eval initial_env) args with
+    begin match p, args with
     | Car, [e] ->
       begin match e with
       | Atom (List (e :: _)) -> e
@@ -114,59 +114,14 @@ and apply_primitive (p : primitive) (args : sexpr list) : sexpr =
     | Cons, [e] -> Atom (List [e])
     | _, _ -> failwith "Syntax error :: Primitive :: wrong primitive"
     end
-  | _ -> failwith "Syntax error :: Primitive :: wrong number of arguments, expected 1 or 2"
-
-let example_1 : string = "(+ 1 2)"
-
-let sexpr_example_1 : sexpr =
-  Call
-    [ Atom (Primitive Add)
-    ; Atom (Int 1)
-    ; Atom (Int 2)
-    ]
-
-let example_2 : string = "(let (y (lambda (x) (+ x 10))) (y 2))"
-
-let sexpr_example_2 : sexpr =
-  Call
-    [ Special Let
-    ; Call
-      [ Symbol "y"
-      ; Call
-        [ Special Lambda
-        ; Call [ Symbol "x" ]
-        ; Call
-          [ Atom (Primitive Add)
-          ; Symbol "x"
-          ; Atom (Int 10)
-          ]
-        ]
-      ]
-    ; Call [ Symbol "y"; Atom (Int 2) ]
-    ]
-
-let example_3 : string = "((lambda (x) (let (a 10) (let (x 20) (+ x 1)))) 20000)"
-
-let sexpr_example_3 : sexpr =
-  Call
-    [ Call
-      [ Special Lambda
-      ; Call [ Symbol "x" ]
-      ; Call
-        [ Special Let
-        ; Call [ Symbol "a"; Atom (Int 10) ]
-        ; Call
-          [ Special Let
-          ; Call [ Symbol "x"; Atom (Int 20) ]
-          ; Call
-            [ Atom (Primitive Add)
-            ; Symbol "x"
-            ; Atom (Int 1)
-            ]
-          ]
-        ]
-      ]
-    ]
+  | _ ->
+    begin match p, args with
+    | Add, Atom (Int i) :: Atom (Int i') :: es ->
+      apply_primitive Add ((Atom (Int (i + i'))) :: es)
+    | Mul, Atom (Int i) :: Atom (Int i') :: es ->
+      apply_primitive Mul ((Atom (Int (i * i'))) :: es)
+    | _ -> failwith "Syntax error :: Primitive :: wrong number of arguments"
+    end
 
 (*
 let main () =
@@ -186,6 +141,18 @@ let main () =
       loop (r + 1)) with Invalid_argument _ -> 
       let _ = print_string ("Expression not simplifiable\n") in loop (r + 1) in 
   loop 0 
-
 let () = main ()
 *)
+
+let example_1 : string = "(+ 1 2)"
+let example_2 : string = "(let (y (lambda (x) (+ x 10))) (y 2))"
+let example_3 : string = "((lambda (x) (let (a 10) (let (x 20) (+ x 1)))) 20000)"
+
+let main () =
+  let evaluate ex = List.map (eval initial_env) (Parser.parse ex) in
+  let _ = assert(evaluate example_1 = [Atom (Int 3)]) in
+  let _ = assert(evaluate example_2 = [Atom (Int 12)]) in
+  let _ = assert(evaluate example_3 = [Atom (Int 21)]) in
+  ()
+
+let () = main ()
