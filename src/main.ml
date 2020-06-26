@@ -7,15 +7,9 @@ let string_of_symbol : sexpr -> string = function
 let initial_env : env = []
 
 let rec eval (env : env) (e : sexpr) : sexpr =
-  let search s = 
-    let rec loop s env =
-      match env with
-      | (s', e') :: env -> if s = s' then e' else loop s env
-      | [] -> e in 
-    loop s env in
   match e with
   | Atom (_) | Special (_) -> e
-  | Symbol (s) -> search s
+  | Symbol (s) -> (fun s -> try List.assoc s env with Not_found -> Symbol (s)) s
   | Call (es) -> eval_call env es
 
 and is_special (es : sexpr list) : bool =
@@ -34,8 +28,11 @@ and eval_call (env : env) (es : sexpr list) : sexpr =
 
 and eval_special (env : env) (es : sexpr list) : sexpr =
   match es with
-  | [Special If; Atom (Bool b); e; e'] -> 
-    if b then e else e'
+  | [Special If; e; e'; e''] ->
+    begin match eval env e with
+    | Atom (Bool b) -> if b then (eval env e') else (eval env e'')
+    | _ -> failwith "Syntax error :: If :: condition must be a boolean"
+    end
   | [Special Lambda; Call es; es'] -> 
     let env' = (List.map (fun e -> string_of_symbol e, e) es) in
     let xs = List.map string_of_symbol es in 
@@ -45,9 +42,6 @@ and eval_special (env : env) (es : sexpr list) : sexpr =
     apply env ((eval_special env ([Special Lambda; Call es; e])) :: es')
   | [Special Let; Call([Symbol s; e]); e'] ->
     eval_special env [Special Lambda; Call ([Symbol s]); e'; e]
-  
-  | [Special If; _; _; _] ->
-    failwith "Syntax error :: If :: condition must be a boolean"
   | [Special Lambda; _; _] ->
     failwith "Syntax error :: Lambda :: poorly wrapped symbols"
   | [Special Let; _; _] -> 
@@ -67,30 +61,23 @@ and apply (env : env) (es : sexpr list) : sexpr =
   | [Atom (a)] -> Atom (a)
   | _ -> Call (es)
 
-and apply_function (env : env) (_xs, e) (args : sexpr list) : sexpr =
-  (* an evil yet working hack *)
-  if args = [] then e else
-  let rec loop env args =
-    match env, args with
-    | (x, _) :: env, arg :: args -> (x, arg) :: loop env args
-    | (x, e) :: env, [] -> (x, e) :: env
-    | [], _ :: _ -> 
-      failwith "Syntax error :: Special :: 
-                expression evaluated with too many arguments"
-    | [], [] -> [] in 
-  let env' = loop env args in
-  let search s = 
-    let rec loop s env =
-      match env with
-      | (s', e') :: env -> if s = s' then e' else loop s env
-      | [] -> e in 
-    loop s env' in
+and apply_function (env : env) (xs, e) (args : sexpr list) : sexpr =
+  let env = extend_env env xs args in
   let rec replace e = 
     match e with
-    | Symbol s -> search s
+    | Symbol s -> (fun s -> try List.assoc s env with Not_found -> Symbol (s)) s
     | Call es -> Call (List.map replace es)
     | _ -> e in
-  eval env' (replace e)
+  eval env (replace e)
+
+and extend_env (env : env) (xs : string list) (args : sexpr list) : env = 
+  match env, args with
+  | (x, _) :: env, arg :: args -> (x, arg) :: extend_env env xs args
+  | (x, e) :: env, [] -> (x, e) :: env
+  | [], _ :: _ -> 
+    failwith "Syntax error :: Special :: 
+              expression evaluated with too many arguments"
+  | [], [] -> []
 
 and apply_primitive (p : primitive) (args : sexpr list) : sexpr =
   match args with
@@ -101,7 +88,7 @@ and apply_primitive (p : primitive) (args : sexpr list) : sexpr =
       | Add -> Atom (Int (i + i'))
       | Sub -> Atom (Int (i - i'))
       | Mul -> Atom (Int (i * i'))
-      | Div -> Atom (Int (i * i'))
+      | Div -> Atom (Int (i / i'))
       | Eq -> Atom (Bool (i = i'))
       | Lt -> Atom (Bool (i < i'))
       | _ -> failwith "Syntax error :: Primitive :: unreachable error"
