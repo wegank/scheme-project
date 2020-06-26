@@ -41,6 +41,9 @@ let sexpr_of_string x : sexpr =
   | "if"     -> Special If
   | "lambda" -> Special Lambda
   | "let"    -> Special Let
+  | "cons"   -> Atom (Primitive Cons)
+  | "car"    -> Atom (Primitive Car)
+  | "cdr"    -> Atom (Primitive Cdr)
   | others   -> try_to_match_atom others
 
 let rec group_expressions (acc : sexpr list) (chars : string list) =

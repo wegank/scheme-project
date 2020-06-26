@@ -10,6 +10,7 @@ and atom
   | Str_ of string
   | Primitive of primitive
   | Fun of env * code
+  | List of sexpr list
 
 and special
   = If
@@ -23,6 +24,9 @@ and primitive
   | Div
   | Eq
   | Lt
+  | Car
+  | Cdr 
+  | Cons
 
 and env = (string * sexpr) list
 

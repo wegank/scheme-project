@@ -75,7 +75,8 @@ and apply_function (env : env) (_xs, e) (args : sexpr list) : sexpr =
     | (x, _) :: env, arg :: args -> (x, arg) :: loop env args
     | (x, e) :: env, [] -> (x, e) :: env
     | [], _ :: _ -> 
-      failwith "Syntax error :: Special :: expression evaluated with too many arguments"
+      failwith "Syntax error :: Special :: 
+                expression evaluated with too many arguments"
     | [], [] -> [] in 
   let env' = loop env args in
   let search s = 
@@ -96,7 +97,7 @@ and apply_primitive (p : primitive) (args : sexpr list) : sexpr =
   match args with
   | [_; _] ->
     begin match List.map (eval initial_env) args with
-    | Atom (Int (i)) :: Atom (Int (i')) :: [] ->
+    | [Atom (Int (i)); Atom (Int (i'))] ->
       begin match p with
       | Add -> Atom (Int (i + i'))
       | Sub -> Atom (Int (i - i'))
@@ -104,8 +105,34 @@ and apply_primitive (p : primitive) (args : sexpr list) : sexpr =
       | Div -> Atom (Int (i * i'))
       | Eq -> Atom (Bool (i = i'))
       | Lt -> Atom (Bool (i < i'))
+      | _ -> failwith "Syntax error :: primitive :: wrong primitive"
+      end
+    | [e; Atom (List es)] ->
+      begin match p with
+      | Cons -> Atom (List (e :: es))
+      | _ -> failwith "Syntax error :: primitive :: wrong primitive"
+      end
+    | [e; Call []] ->
+      begin match p with
+      | Cons -> Atom (List [e])
+      | _ -> failwith "Syntax error :: primitive :: wrong primitive"
       end
     | _ -> Call (Atom (Primitive p) :: args)
+    end
+  | [_] ->
+    begin match List.map (eval initial_env) args with
+    | [Atom (List (e :: es))] ->
+      begin match p with
+      | Car -> e
+      | Cdr -> Atom (List es)
+      | _ -> failwith "Syntax error :: primitive :: wrong primitive"
+      end
+    | [e] ->
+      begin match p with
+      | Cons -> Atom (List [e])
+      | _ -> failwith "Syntax error :: primitive :: wrong primitive"
+      end
+    | _ -> failwith "Syntax error :: primitive :: wrong primitive"
     end
   | _ -> failwith "Syntax error :: Primitive :: too few arguments, expected 2"
 
