@@ -34,9 +34,8 @@ and eval_special (env : env) (es : sexpr list) : sexpr =
     | _ -> failwith "Syntax error :: If :: condition must be a boolean"
     end
   | [Special Lambda; Call es; es'] -> 
-    let env' = (List.map (fun e -> string_of_symbol e, e) es) in
-    let xs = List.map string_of_symbol es in 
-    Atom (Fun (env', (xs, eval env es')))
+    let xs = List.map string_of_symbol es in Atom (Fun (env, (xs, es')))
+
   | Special Lambda :: Call es :: e :: es'
   | Call ([Special Lambda; Call es; e]) :: es' ->
     apply env ((eval_special env ([Special Lambda; Call es; e])) :: es')
@@ -52,32 +51,27 @@ and eval_special (env : env) (es : sexpr list) : sexpr =
     failwith "Syntax error :: Lambda :: wrong number of arguments, expected 2"
   | Special Let :: _ ->
     failwith "Syntax error :: Let :: wrong number of arguments, expected 2"
-  | _ -> Call (es)
+  | _ -> apply env es
 
 and apply (env : env) (es : sexpr list) : sexpr =
-  match es with
+  match List.map (eval env) es with
   | Atom (Primitive p) :: es -> apply_primitive p es
-  | Atom (Fun (env', (xs, e))) :: es -> apply_function (env' @ env) (xs, e) es 
+  | Atom (Fun (_, (xs, e))) :: es -> apply_function (env, (xs, e)) es 
   | [Atom (a)] -> Atom (a)
-  | _ -> Call (es)
+  | _ -> Call es
 
-and apply_function (env : env) (xs, e) (args : sexpr list) : sexpr =
-  let env = extend_env env xs args in
-  let rec replace e = 
-    match e with
-    | Symbol s -> (fun s -> try List.assoc s env with Not_found -> Symbol (s)) s
-    | Call es -> Call (List.map replace es)
-    | _ -> e in
-  eval env (replace e)
+and apply_function (env, (xs, e)) (args : sexpr list) : sexpr =
+  eval (extend_env env xs args) e
 
 and extend_env (env : env) (xs : string list) (args : sexpr list) : env = 
-  match env, args with
-  | (x, _) :: env, arg :: args -> (x, arg) :: extend_env env xs args
-  | (x, e) :: env, [] -> (x, e) :: env
-  | [], _ :: _ -> 
+  match xs, args with
+  | x :: xs, arg :: args -> 
+    if arg = Symbol x then extend_env env xs args else 
+    (x, arg) :: extend_env env xs args
+  | _, [] -> env
+  | [], _ -> 
     failwith "Syntax error :: Special :: 
               expression evaluated with too many arguments"
-  | [], [] -> []
 
 and apply_primitive (p : primitive) (args : sexpr list) : sexpr =
   match args with
@@ -174,6 +168,7 @@ let sexpr_example_3 : sexpr =
       ]
     ]
 
+(*
 let main () =
   let rec tostring e =
     match e with
@@ -193,3 +188,4 @@ let main () =
   loop 0 
 
 let () = main ()
+*)
