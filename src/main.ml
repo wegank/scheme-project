@@ -81,7 +81,8 @@ let sexpr_example_3 : sexpr =
 
 let main () =
   let prog = Parser.parse example_1 in
-  let _ = List.map (eval initial_env) prog in
+  let exprs = List.map (eval initial_env) prog in
+  List.fold_left (fun _ x -> print_endline (Parser.string_of_sexpr x)) () exprs;
   ()
 
 let () = main ()
